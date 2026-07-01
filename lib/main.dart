@@ -1,66 +1,91 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'services/api_service.dart';
 
-void main() {
-  runApp(const BabyAIApp());
-}
+void main() => runApp(const BabyAI());
 
-class BabyAIApp extends StatelessWidget {
-  const BabyAIApp({super.key});
+class BabyAI extends StatelessWidget {
+  const BabyAI({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Baby AI',
       theme: ThemeData.dark(useMaterial3: true),
-      home: const HomePage(),
+      home: const ChatPage(),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  String status = "Tap the microphone to test Baby AI";
+class _ChatPageState extends State<ChatPage> {
+  final controller = TextEditingController();
+  final List<Map<String, String>> messages = [];
 
-  Future<void> testServer() async {
+  Future<void> send() async {
+    final text = controller.text.trim();
+    if (text.isEmpty) return;
+
     setState(() {
-      status = "Connecting...";
+      messages.add({"role": "You", "text": text});
     });
 
-    final result = await ApiService.checkServer();
+    controller.clear();
+
+    final reply = await ApiService.chat(text);
 
     setState(() {
-      status = result;
+      messages.add({"role": "Baby AI", "text": reply});
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Baby AI"),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            status,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22),
+      appBar: AppBar(title: const Text("Baby AI")),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: messages.length,
+              itemBuilder: (_, i) {
+                final m = messages[i];
+                return Card(
+                  child: ListTile(
+                    title: Text(m["role"]!),
+                    subtitle: Text(m["text"]!),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: testServer,
-        child: const Icon(Icons.mic),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      hintText: "Ask Baby AI anything...",
+                    ),
+                    onSubmitted: (_) => send(),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: send,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
