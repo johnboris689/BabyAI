@@ -1,10 +1,6 @@
-import os
 from flask import Flask, request, jsonify
-from openai import OpenAI
 
 app = Flask(__name__)
-
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 @app.route("/")
 def home():
@@ -15,31 +11,16 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
-    message = data.get("message", "")
+    message = data.get("message", "").lower()
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are Baby AI, a friendly, intelligent AI assistant."
-                },
-                {
-                    "role": "user",
-                    "content": message
-                }
-            ]
-        )
+    if "hello" in message:
+        reply = "Hello! I'm Baby AI. Nice to meet you."
+    elif "name" in message:
+        reply = "My name is Baby AI."
+    else:
+        reply = "I'm currently running in offline mode."
 
-        return jsonify({
-            "reply": response.choices[0].message.content
-        })
-
-    except Exception as e:
-        return jsonify({
-            "reply": f"Error: {str(e)}"
-        }), 500
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
