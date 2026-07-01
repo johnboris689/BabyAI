@@ -1,56 +1,66 @@
 import 'package:flutter/material.dart';
-import 'assistant_engine.dart';
-import 'voice_engine.dart';
-import 'tts_engine.dart';
+import 'api_service.dart';
 
-void main() => runApp(const BabyAI());
+void main() {
+  runApp(const BabyAIApp());
+}
 
-class BabyAI extends StatelessWidget {
-  const BabyAI({super.key});
+class BabyAIApp extends StatelessWidget {
+  const BabyAIApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const BootScreen(),
+      title: 'Baby AI',
+      theme: ThemeData.dark(useMaterial3: true),
+      home: const HomePage(),
     );
   }
 }
 
-class BootScreen extends StatefulWidget {
-  const BootScreen({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<BootScreen> createState() => _BootScreenState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _BootScreenState extends State<BootScreen> {
-  String status = "Starting Baby AI...";
+class _HomePageState extends State<HomePage> {
+  String status = "Tap the microphone to test Baby AI";
 
-  @override
-  void initState() {
-    super.initState();
-    start();
-  }
+  Future<void> testServer() async {
+    setState(() {
+      status = "Connecting...";
+    });
 
-  Future<void> start() async {
-    final engine = AssistantEngine(VoiceEngine(), TTSEngine());
+    final result = await ApiService.checkServer();
 
-    setState(() => status = "Listening for 'baby'...");
-
-    await engine.start();
+    setState(() {
+      status = result;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text("Baby AI"),
+        centerTitle: true,
+      ),
       body: Center(
-        child: Text(
-          status,
-          style: const TextStyle(fontSize: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            status,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 22),
+          ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: testServer,
+        child: const Icon(Icons.mic),
       ),
     );
   }
