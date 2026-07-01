@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'assistant_engine.dart';
+import 'voice_engine.dart';
+import 'tts_engine.dart';
 
-void main() {
-  runApp(const BabyAI());
-}
+void main() => runApp(const BabyAI());
 
 class BabyAI extends StatelessWidget {
   const BabyAI({super.key});
@@ -11,40 +12,45 @@ class BabyAI extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Baby AI',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const HomePage(),
+      theme: ThemeData.dark(),
+      home: const BootScreen(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class BootScreen extends StatefulWidget {
+  const BootScreen({super.key});
+
+  @override
+  State<BootScreen> createState() => _BootScreenState();
+}
+
+class _BootScreenState extends State<BootScreen> {
+  String status = "Starting Baby AI...";
+
+  @override
+  void initState() {
+    super.initState();
+    start();
+  }
+
+  Future<void> start() async {
+    final engine = AssistantEngine(VoiceEngine(), TTSEngine());
+
+    setState(() => status = "Listening for 'baby'...");
+
+    await engine.start();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("🤖 Baby AI"),
-        centerTitle: true,
-      ),
-      body: const Center(
+      backgroundColor: Colors.black,
+      body: Center(
         child: Text(
-          "Welcome to Baby AI",
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+          status,
+          style: const TextStyle(fontSize: 20),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        icon: const Icon(Icons.mic),
-        label: const Text("Talk"),
       ),
     );
   }
